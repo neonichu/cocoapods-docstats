@@ -2,10 +2,10 @@ module Pod
   class Command
     class Spec
       class Docstats < Spec
-        self.summary = "Short description of cocoapods-docstats."
+        self.summary = "Show documentation metrics of Pods."
 
         self.description = <<-DESC
-          Longer description of cocoapods-docstats.
+          Show documentation metrics of Pods.
         DESC
 
         self.arguments = 'NAME'
