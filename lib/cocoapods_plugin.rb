@@ -1,3 +1,3 @@
 require 'spec_extensions'
 require '_utils'
-require 'pod/command/spec/docstats'
+require 'pod/command/lib/docstats'

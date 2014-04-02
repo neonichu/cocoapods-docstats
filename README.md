@@ -8,5 +8,5 @@ CocoaPods plugin for showing documentation metrics of Pods.
 
 ## Usage
 
-    $ pod spec docstats POD_NAME
+    $ pod lib docstats
 

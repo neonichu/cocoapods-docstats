@@ -1,7 +1,7 @@
 module Pod
   class Command
-    class Spec
-      class Docstats < Spec
+    class Lib
+      class Docstats < Lib
         self.summary = "Show documentation metrics of Pods."
 
         self.description = <<-DESC
@@ -11,14 +11,8 @@ module Pod
         self.arguments = 'NAME'
 
         def initialize(argv)
-          @name = argv.shift_argument
           @output = './cocoapods-docstats/'
           super
-        end
-
-        def validate!
-          super
-          help! "A Pod name is required." unless @name
         end
 
         def docstat(docset_path)
@@ -90,17 +84,24 @@ module Pod
           headers.uniq
         end
 
+        def podspecs_to_check
+          podspecs = Pathname.glob(Pathname.pwd + '*.podspec{.yaml,}')
+          raise Informative, "Unable to find a podspec in the working directory" if podspecs.count.zero?
+          podspecs
+        end
+
         def run
-          path = get_path_of_spec(@name)
-          spec = Specification.from_file(path)
+          podspecs_to_check.each do |path|
+            spec = Specification.from_file(path)
 
-          generate_docset(Dir.pwd, spec)
+            generate_docset(Dir.pwd, spec)
 
-          docset_path = File.join(@output, "com.cocoadocs.#{spec.name.downcase}." +
-              spec.name + '.docset')
-          docstat(docset_path)
+            docset_path = File.join(@output, "com.cocoadocs.#{spec.name.downcase}." +
+                spec.name + '.docset')
+            docstat(docset_path)
 
-          FileUtils.rm_rf(@output)
+            FileUtils.rm_rf(@output)
+          end
         end
       end
     end
