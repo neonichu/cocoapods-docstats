@@ -8,7 +8,7 @@ module Pod
           Show documentation metrics of Pods.
         DESC
 
-        self.arguments = 'NAME'
+        self.arguments = [['NAME', :required]]
 
         def initialize(argv)
           @output = './cocoapods-docstats/'
