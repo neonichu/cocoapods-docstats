@@ -8,7 +8,7 @@ module Pod
           Show documentation metrics of Pods.
         DESC
 
-        self.arguments = [['NAME', :required]]
+        self.arguments = [CLAide::Argument.new('NAME', true)]
 
         def initialize(argv)
           @output = './cocoapods-docstats/'
