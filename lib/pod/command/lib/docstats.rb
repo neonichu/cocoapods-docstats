@@ -28,6 +28,10 @@ module Pod
           headers = headers_for_spec_at_location(path, spec)
           headers.map! { |header| Shellwords.escape header }
 
+          if headers.count == 0
+            raise Informative, "Pod does not expose any public headers."
+          end
+
           docset_command = [
               "appledoc",
               "--project-name #{spec.name}",                           # name in top left
