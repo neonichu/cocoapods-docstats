@@ -10,8 +10,15 @@ module Pod
 
         self.arguments = [CLAide::Argument.new('NAME', true)]
 
+        def self.options
+          [
+            ['--gutter',     'Generate a gutter.json file.'],
+          ]
+        end
+
         def initialize(argv)
           @output = './cocoapods-docstats/'
+          @gutter = argv.flag?('gutter')
           super
         end
 
@@ -34,6 +41,7 @@ module Pod
 
           docset_command = [
               "appledoc",
+              "--logformat xcode",                                     # better log output
               "--project-name #{spec.name}",                           # name in top left
               "--project-company '#{spec.or_contributors_to_spec}'",   # name in top right
               "--company-id com.cocoadocs.#{spec.name.downcase}",      # the id for the
@@ -61,10 +69,38 @@ module Pod
 
               "--output #{@output}",                                 # where should we throw stuff
               *headers,
-              " >/dev/null"
+              " 2>&1 >/dev/null"
             ]
 
-            command docset_command.join(' ')
+            `#{docset_command.join(' ')}`
+        end
+
+        def generate_gutter_json(appledoc_output)
+          require 'date'
+          require 'json'
+
+          output = { 'meta' => { 'timestamp' => DateTime.now.strftime('%Y-%m-%d %H:%M:%S.%6N') } }
+          symbols = {}
+
+          appledoc_output.split("\n").each do |warning|
+            s = warning.split(':')
+            next unless s.count >= 3
+            file = s[0].sub(Dir.pwd + '/', '')
+
+            message = s.slice(2, s.count - 2).join(':')
+            message = message.sub(' warning: ', '')
+
+            symbol = { 'line' => s[1], 'short_text' => message }
+
+            if symbols.has_key?(file)
+              symbols[file] << symbol
+            else
+              symbols[file] = [ symbol ]
+            end
+          end
+
+          output['symbols_by_file'] = symbols
+          File.open('.gutter.json', 'w') { |file| file.write(output.to_json) }
         end
 
         def headers_for_spec_at_location(path, spec)
@@ -98,7 +134,8 @@ module Pod
           podspecs_to_check.each do |path|
             spec = Specification.from_file(path)
 
-            generate_docset(Dir.pwd, spec)
+            output = generate_docset(Dir.pwd, spec)
+            generate_gutter_json(output) if @gutter
 
             docset_path = File.join(@output, "com.cocoadocs.#{spec.name.downcase}." +
                 spec.name + '.docset')
